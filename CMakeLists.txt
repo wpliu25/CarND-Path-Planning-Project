@@ -8,7 +8,9 @@ set(CXX_FLAGS "-Wall")
 set(CMAKE_CXX_FLAGS, "${CXX_FLAGS}")
 
 set(sources src/main.cpp
-            src/car.h)
+            src/utils.h
+            src/car.h
+            src/path.h)
 
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin") 
