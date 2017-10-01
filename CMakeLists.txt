@@ -11,6 +11,7 @@ set(sources src/main.cpp
             src/utils.h
             src/car.h
             src/navigation.h
+            src/map.h
             src/path.h)
 
 

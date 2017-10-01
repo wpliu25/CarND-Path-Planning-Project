@@ -45,8 +45,9 @@ int main() {
     Car car;
     Path path;
     Navigation navigation;
+    Map map(map_waypoints_x, map_waypoints_y, map_waypoints_s, map_waypoints_dx, map_waypoints_dy);
 
-    h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy, &car, &path, &navigation](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+    h.onMessage([&car, &path, &navigation, &map](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                 uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
         // The 4 signifies a websocket message
@@ -106,7 +107,7 @@ int main() {
                     vector<double> next_x_vals;
                     vector<double> next_y_vals;
 
-                    path.CalculatePath(car, navigation, next_x_vals, next_y_vals, map_waypoints_s, map_waypoints_x, map_waypoints_y, previous_path_x, previous_path_y);
+                    path.CalculatePath(car, navigation, map, next_x_vals, next_y_vals, previous_path_x, previous_path_y);
 
                     //----------------------------------------------------------------------------------------
 

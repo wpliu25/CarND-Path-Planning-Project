@@ -3,6 +3,7 @@
 
 #include "car.h"
 #include "navigation.h"
+#include "map.h"
 #include "utils.h"
 
 class Path {
@@ -13,8 +14,7 @@ public:
     Path(){};
     ~Path(){};
 
-    void CalculatePath(Car car, Navigation navigation, vector<double>& next_x_vals, vector<double>& next_y_vals,
-                       vector<double>& map_waypoints_s, vector<double>& map_waypoints_x, vector<double>& map_waypoints_y,
+    void CalculatePath(Car car, Navigation navigation, Map map, vector<double>& next_x_vals, vector<double>& next_y_vals,
                        nlohmann::json previous_path_x, nlohmann::json previous_path_y)
     {
 
@@ -68,9 +68,9 @@ public:
         }
 
         // in Frenet add evenly 30m spaced points ahead of the starting reference
-        vector<double> next_wp0 = getXY(car.GetS()+30, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-        vector<double> next_wp1 = getXY(car.GetS()+60, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-        vector<double> next_wp2 = getXY(car.GetS()+90, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+        vector<double> next_wp0 = getXY(car.GetS()+30, (2+4*lane), map.GetMapWaypointsS(), map.GetMapWaypointsX(), map.GetMapWaypointsY());
+        vector<double> next_wp1 = getXY(car.GetS()+60, (2+4*lane), map.GetMapWaypointsS(), map.GetMapWaypointsX(), map.GetMapWaypointsY());
+        vector<double> next_wp2 = getXY(car.GetS()+90, (2+4*lane), map.GetMapWaypointsS(), map.GetMapWaypointsX(), map.GetMapWaypointsY());
 
         ptsx.push_back(next_wp0[0]);
         ptsx.push_back(next_wp1[0]);
