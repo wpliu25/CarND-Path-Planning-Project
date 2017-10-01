@@ -49,15 +49,6 @@ int main() {
     // initialize change lane desire to false
     bool change_lanes = false;
 
-    // indexed by lanes, boolean flags to indicate valid left or right lane change
-    vector<int> change_left;
-    vector<int> change_right;
-    change_left.push_back(0);
-    change_left.push_back(1);
-    change_left.push_back(1);
-    change_right.push_back(1);
-    change_right.push_back(1);
-    change_right.push_back(0);
     Car car;
     Path path;
 
@@ -87,9 +78,9 @@ int main() {
                     double car_d = j[1]["d"];
                     double car_yaw = j[1]["yaw"];
                     //double car_speed = j[1]["speed"];
-                    //----------
+                    //===============
                     // Car
-                    //----------
+                    //===============
                     car.UpdateCar(car_x, car_y, car_s, car_d, car_yaw);
 
                     // Previous path data given to the Planner
@@ -103,7 +94,6 @@ int main() {
                     auto sensor_fusion = j[1]["sensor_fusion"];
 
                     json msgJson;
-
 
                     // TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
                     // previous path size default 50
@@ -196,16 +186,18 @@ int main() {
                         ref_vel += 0.224;
                     }
 
-                    //================================================================================================
-                    //----------
+                    //----------------------------------------------------------------------------------------
+                    //===============
                     // Path
-                    //----------
+                    //===============
 
                     // define the actual (x,y) points we will use for the planner
                     vector<double> next_x_vals;
                     vector<double> next_y_vals;
 
                     path.CalculatePath(car, next_x_vals, next_y_vals, ref_vel, lane, map_waypoints_s, map_waypoints_x, map_waypoints_y, prev_size, previous_path_x, previous_path_y, desired_path_length);
+
+                    //----------------------------------------------------------------------------------------
 
                     // END
                     msgJson["next_x"] = next_x_vals;
