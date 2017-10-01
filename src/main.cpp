@@ -9,6 +9,7 @@
 #include "Eigen-3.3/Eigen/QR"
 #include "json.hpp"
 #include "spline.h"
+#include "car.h"
 
 using namespace std;
 
@@ -215,8 +216,9 @@ int main() {
     change_right.push_back(1);
     change_right.push_back(1);
     change_right.push_back(0);
+    Car car;
 
-    h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy, &lane, &ref_vel, &change_lanes, &change_left, &change_right](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+    h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy, &lane, &ref_vel, &change_lanes, &change_left, &change_right, &car](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                 uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
         // The 4 signifies a websocket message
@@ -241,7 +243,8 @@ int main() {
                     double car_s = j[1]["s"];
                     double car_d = j[1]["d"];
                     double car_yaw = j[1]["yaw"];
-                    double car_speed = j[1]["speed"];
+                    //double car_speed = j[1]["speed"];
+                    car.updateCar(car_x, car_y, car_s, car_d, car_yaw);
 
                     // Previous path data given to the Planner
                     auto previous_path_x = j[1]["previous_path_x"];
@@ -266,7 +269,7 @@ int main() {
                     //----------------------------------------------------------------------------------------
                     if(prev_size > 0)
                     {
-                        car_s = end_path_s;
+                        car.updateS(end_path_s);
                     }
                     bool too_close = false;
                     bool change_left_safe = true;
@@ -289,7 +292,7 @@ int main() {
                         {
 
                             // check s values greater than our car and s gap of 30m
-                            if((check_car_s_next > car_s) && (check_car_s_next-car_s < 30))
+                            if((check_car_s_next > car.getS()) && (check_car_s_next-car.getS() < 30))
                             {
                                 // flag to handle collisions and cold starts
                                 // also flag to try to change lanes
@@ -303,8 +306,8 @@ int main() {
                         if((lane-1 >= 0) && d < (2+4*(lane-1)+2) && d > (2+4*(lane-1) -2))
                         {
                             // check s values greater than our car and s gap of 30m
-                            if(!(((check_car_s_next > car_s) && (check_car_s_next-car_s > 30)) ||
-                                 ((check_car_s_next < car_s) && (car_s - check_car_s_next > 30))))
+                            if(!(((check_car_s_next > car.getS()) && (check_car_s_next-car.getS() > 30)) ||
+                                 ((check_car_s_next < car.getS()) && (car.getS() - check_car_s_next > 30))))
                             {
                                 change_left_safe = false;
                             }
@@ -313,8 +316,8 @@ int main() {
                         else if((lane + 1 <= 2) && d < (2+4*(lane+1)+2) && d > (2+4*(lane+1) -2))
                         {
                             // check s values greater than our car and s gap of 30m
-                            if(!(((check_car_s_next > car_s) && (check_car_s_next-car_s > 30)) ||
-                                 ((check_car_s_next < car_s) && (car_s - check_car_s_next > 30))))
+                            if(!(((check_car_s_next > car.getS()) && (check_car_s_next-car.getS() > 30)) ||
+                                 ((check_car_s_next < car.getS()) && (car.getS() - check_car_s_next > 30))))
                             {
                                 change_right_safe = false;
                             }
@@ -354,22 +357,22 @@ int main() {
                     vector<double> ptsy;
 
                     // reference x, y, yaw states
-                    double ref_x = car_x;
-                    double ref_y = car_y;
-                    double ref_yaw = deg2rad(car_yaw);
+                    double ref_x = car.getX();
+                    double ref_y = car.getY();
+                    double ref_yaw = deg2rad(car.getYaw());
 
                     // if previous size is almost empty, use the car as starting reference
                     if(prev_size < 2)
                     {
                         // use 2 points that make the path tanget to the car
-                        double prev_car_x = car_x - cos(car_yaw);
-                        double prev_car_y = car_y - sin(car_yaw);
+                        double prev_car_x = car.getX() - cos(car_yaw);
+                        double prev_car_y = car.getY() - sin(car_yaw);
 
                         ptsx.push_back(prev_car_x);
-                        ptsx.push_back(car_x);
+                        ptsx.push_back(car.getX());
 
                         ptsy.push_back(prev_car_y);
-                        ptsy.push_back(car_y);
+                        ptsy.push_back(car.getY());
                     }
                     // else use the previous path's end point as starting reference
                     else
@@ -392,9 +395,9 @@ int main() {
                     }
 
                     // in Frenet add evenly 30m spaced points ahead of the starting reference
-                    vector<double> next_wp0 = getXY(car_s+30, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-                    vector<double> next_wp1 = getXY(car_s+60, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-                    vector<double> next_wp2 = getXY(car_s+90, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+                    vector<double> next_wp0 = getXY(car.getS()+30, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+                    vector<double> next_wp1 = getXY(car.getS()+60, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+                    vector<double> next_wp2 = getXY(car.getS()+90, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
 
                     ptsx.push_back(next_wp0[0]);
                     ptsx.push_back(next_wp1[0]);
