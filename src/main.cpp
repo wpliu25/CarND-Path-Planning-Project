@@ -203,9 +203,20 @@ int main() {
     // reference velocity to target
     double ref_vel = 0; // mph, just less than the speed limit of 50 mph
 
+    // initialize change lane desire to false
     bool change_lanes = false;
 
-    h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy, &lane, &ref_vel, &change_lanes](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+    // indexed by lanes, boolean flags to indicate valid left or right lane change
+    vector<int> change_left;
+    vector<int> change_right;
+    change_left.push_back(0);
+    change_left.push_back(1);
+    change_left.push_back(1);
+    change_right.push_back(1);
+    change_right.push_back(1);
+    change_right.push_back(0);
+
+    h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy, &lane, &ref_vel, &change_lanes, &change_left, &change_right](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                 uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
         // The 4 signifies a websocket message
@@ -248,16 +259,6 @@ int main() {
                     // TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
                     // previous path size default 50
                     int prev_size = previous_path_x.size();
-
-                    // indexed by lanes, boolean flags to indicate valid left or right lane change
-                    vector<int> change_left;
-                    vector<int> change_right;
-                    change_left.push_back(0);
-                    change_left.push_back(1);
-                    change_left.push_back(1);
-                    change_right.push_back(1);
-                    change_right.push_back(1);
-                    change_right.push_back(0);
 
                     //===============
                     // sensor fusion
