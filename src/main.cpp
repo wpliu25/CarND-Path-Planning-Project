@@ -41,21 +41,12 @@ int main() {
         map_waypoints_dy.push_back(d_y);
     }
 
-    // start in lane 1 (lane convention, inner to outer: 0, 1, 2)
-    int lane = 1;
-
-    // reference velocity to target
-    double ref_vel = 0; // mph, just less than the speed limit of 50 mph
-
-    // initialize change lane desire to false
-    bool change_lanes = false;
-
     // initialize objects
     Car car;
     Path path;
     Navigation navigation;
 
-    h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy, &lane, &ref_vel, &change_lanes, &change_left, &change_right, &car, &path, &navigation](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+    h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy, &car, &path, &navigation](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                 uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
         // The 4 signifies a websocket message
@@ -104,7 +95,7 @@ int main() {
                     // Navigation
                     //===============
                     //----------------------------------------------------------------------------------------
-                    navigation.UpdateNavigation(car, sensor_fusion, ref_vel, change_lanes, lane, previous_path_x, end_path_s);
+                    navigation.UpdateNavigation(car, sensor_fusion, previous_path_x, end_path_s);
 
                     //----------------------------------------------------------------------------------------
                     //===============
@@ -115,7 +106,7 @@ int main() {
                     vector<double> next_x_vals;
                     vector<double> next_y_vals;
 
-                    path.CalculatePath(car, next_x_vals, next_y_vals, ref_vel, lane, map_waypoints_s, map_waypoints_x, map_waypoints_y, previous_path_x, previous_path_y);
+                    path.CalculatePath(car, navigation, next_x_vals, next_y_vals, map_waypoints_s, map_waypoints_x, map_waypoints_y, previous_path_x, previous_path_y);
 
                     //----------------------------------------------------------------------------------------
 

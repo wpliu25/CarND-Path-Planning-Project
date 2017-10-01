@@ -2,6 +2,7 @@
 #define PATH_H
 
 #include "car.h"
+#include "navigation.h"
 #include "utils.h"
 
 class Path {
@@ -12,10 +13,14 @@ public:
     Path(){};
     ~Path(){};
 
-    void CalculatePath(Car car, vector<double>& next_x_vals, vector<double>& next_y_vals, double ref_vel,
-                       int& lane, vector<double>& map_waypoints_s, vector<double>& map_waypoints_x, vector<double>& map_waypoints_y,
+    void CalculatePath(Car car, Navigation navigation, vector<double>& next_x_vals, vector<double>& next_y_vals,
+                       vector<double>& map_waypoints_s, vector<double>& map_waypoints_x, vector<double>& map_waypoints_y,
                        nlohmann::json previous_path_x, nlohmann::json previous_path_y)
     {
+
+        // from navigation
+        int lane = navigation.GetLane();
+        double ref_vel = navigation.GetRefVel();
 
         // previous path size default 50
         int prev_size = previous_path_x.size();
