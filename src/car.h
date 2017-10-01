@@ -18,9 +18,6 @@ protected:
     double vx_;
     double vy_;
 
-    vector<double> previous_s_;
-    vector<double> previous_d_;
-
 public:
     Car(){};
     Car(int id, double x, double y, double s, double d, double yaw, double vx = 0, double vy = 0)
