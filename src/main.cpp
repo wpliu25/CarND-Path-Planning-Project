@@ -2,6 +2,7 @@
 #include "spline.h"
 #include "car.h"
 #include "path.h"
+#include "navigation.h"
 
 int main() {
     uWS::Hub h;
@@ -49,10 +50,12 @@ int main() {
     // initialize change lane desire to false
     bool change_lanes = false;
 
+    // initialize objects
     Car car;
     Path path;
+    Navigation navigation;
 
-    h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy, &lane, &ref_vel, &change_lanes, &change_left, &change_right, &car, &path](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+    h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy, &lane, &ref_vel, &change_lanes, &change_left, &change_right, &car, &path, &navigation](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                 uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
         // The 4 signifies a websocket message
@@ -96,95 +99,12 @@ int main() {
                     json msgJson;
 
                     // TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
-                    // previous path size default 50
-                    int prev_size = previous_path_x.size();
 
                     //===============
-                    // sensor fusion
+                    // Navigation
                     //===============
                     //----------------------------------------------------------------------------------------
-                    if(prev_size > 0)
-                    {
-                        car.UpdateS(end_path_s);
-                    }
-                    bool too_close = false;
-                    bool change_left_safe = true;
-                    bool change_right_safe = true;
-                    int desired_path_length = 50;
-
-                    // find ref_v to use
-                    for(int i = 0; i< sensor_fusion.size(); i++)
-                    {
-                        // sensed car info
-                        float d = sensor_fusion[i][6];
-                        double vx = sensor_fusion[i][3];
-                        double vy = sensor_fusion[i][4];
-                        double check_speed = sqrt(vx*vx + vy*vy);
-                        double check_car_s = sensor_fusion[i][5];
-                        double check_car_s_next = check_car_s + ((double)prev_size*0.02*check_speed); //using prev points can project s values out in time
-
-                        // car is in my lane
-                        if(d < (2+4*lane+2) && d > (2+4*lane -2))
-                        {
-
-                            // check s values greater than our car and s gap of 30m
-                            if((check_car_s_next > car.GetS()) && (check_car_s_next-car.GetS() < 30))
-                            {
-                                // flag to handle collisions and cold starts
-                                // also flag to try to change lanes
-                                //ref_vel = 29.5; //mph
-                                too_close = true;
-                                change_lanes = true;
-                            }
-                        }
-
-                        // car is in my left lane
-                        if((lane-1 >= 0) && d < (2+4*(lane-1)+2) && d > (2+4*(lane-1) -2))
-                        {
-                            // check s values greater than our car and s gap of 30m
-                            if(!(((check_car_s_next > car.GetS()) && (check_car_s_next-car.GetS() > 30)) ||
-                                 ((check_car_s_next < car.GetS()) && (car.GetS() - check_car_s_next > 30))))
-                            {
-                                change_left_safe = false;
-                            }
-                        }
-                        // car is in my right lane
-                        else if((lane + 1 <= 2) && d < (2+4*(lane+1)+2) && d > (2+4*(lane+1) -2))
-                        {
-                            // check s values greater than our car and s gap of 30m
-                            if(!(((check_car_s_next > car.GetS()) && (check_car_s_next-car.GetS() > 30)) ||
-                                 ((check_car_s_next < car.GetS()) && (car.GetS() - check_car_s_next > 30))))
-                            {
-                                change_right_safe = false;
-                            }
-                        }
-                    }
-
-                    // try to change lanes
-                    if(change_lanes)
-                    {
-                        if(change_left[lane] == 1 && change_left_safe)
-                        {
-                            lane -= 1;
-                            desired_path_length = 50;
-                            change_lanes = false;
-                        }else if(change_right[lane] == 1 && change_right_safe)
-                        {
-                            lane += 1;
-                            desired_path_length = 50;
-                            change_lanes = false;
-                        }
-                    }
-
-                    // using flag for logic to handle collisions and cold starts
-                    if(too_close)
-                    {
-                        ref_vel -= 0.224;
-                    }
-                    else if(ref_vel < 49.5)
-                    {
-                        ref_vel += 0.224;
-                    }
+                    navigation.UpdateNavigation(car, sensor_fusion, ref_vel, change_lanes, lane, previous_path_x, end_path_s);
 
                     //----------------------------------------------------------------------------------------
                     //===============
@@ -195,7 +115,7 @@ int main() {
                     vector<double> next_x_vals;
                     vector<double> next_y_vals;
 
-                    path.CalculatePath(car, next_x_vals, next_y_vals, ref_vel, lane, map_waypoints_s, map_waypoints_x, map_waypoints_y, prev_size, previous_path_x, previous_path_y, desired_path_length);
+                    path.CalculatePath(car, next_x_vals, next_y_vals, ref_vel, lane, map_waypoints_s, map_waypoints_x, map_waypoints_y, previous_path_x, previous_path_y);
 
                     //----------------------------------------------------------------------------------------
 

@@ -4,25 +4,9 @@
 #include "car.h"
 #include "utils.h"
 
-using namespace std;
-// for convenience
-using json = nlohmann::json;
-
 class Path {
 
 protected:
-
-    int id_;
-    double x_;
-    double y_;
-    double s_;
-    double d_;
-    double yaw_;
-    double vx_;
-    double vy_;
-
-    vector<double> previous_s_;
-    vector<double> previous_d_;
 
 public:
     Path(){};
@@ -30,8 +14,11 @@ public:
 
     void CalculatePath(Car car, vector<double>& next_x_vals, vector<double>& next_y_vals, double ref_vel,
                        int& lane, vector<double>& map_waypoints_s, vector<double>& map_waypoints_x, vector<double>& map_waypoints_y,
-                       int prev_size, nlohmann::json previous_path_x, nlohmann::json previous_path_y, int desired_path_length)
+                       nlohmann::json previous_path_x, nlohmann::json previous_path_y)
     {
+
+        // previous path size default 50
+        int prev_size = previous_path_x.size();
 
         // list of a widely spaced (x,y) waypoints, evenly spaced at 30m to be interpolated with a spline
         vector<double> ptsx;
@@ -98,12 +85,12 @@ public:
             ptsy[i] = (shift_x * sin(0-ref_yaw)+shift_y*cos(0-ref_yaw));
         }
 
-        CalculateSpline(next_x_vals, next_y_vals, ptsx, ptsy, previous_path_x, previous_path_y, ref_x, ref_y, ref_yaw, ref_vel, desired_path_length);
+        CalculateSpline(next_x_vals, next_y_vals, ptsx, ptsy, previous_path_x, previous_path_y, ref_x, ref_y, ref_yaw, ref_vel);
     };
 
     void CalculateSpline(vector<double>& next_x_vals, vector<double>& next_y_vals, vector<double> ptsx, vector<double> ptsy,
                          nlohmann::json previous_path_x, nlohmann::json previous_path_y,
-                         double ref_x, double ref_y, double ref_yaw, double ref_vel, int desired_path_length)
+                         double ref_x, double ref_y, double ref_yaw, double ref_vel)
     {
         // spline
         tk::spline s;
@@ -126,7 +113,7 @@ public:
         double x_add_on = 0;
 
         // fill up the rest of our path planner after filling it with previous points, set to 50
-        for(int i=1; i <= desired_path_length-previous_path_x.size(); i++)
+        for(int i=1; i <= 50-previous_path_x.size(); i++)
         {
             double N = (target_dist/(0.02*ref_vel/2.24));
             double x_point = x_add_on+(target_x)/N;
