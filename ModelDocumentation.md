@@ -23,6 +23,6 @@ This class calculates the points along the desired path. An instance is called t
 
 ## Improvements
 * This is a simple model that can be improved with the integration of a more sophisticated controller. We currently change navigation based on desired location, but a better model can account for desired velocity and also adjust the path length accordingly.
-* In addition, a state machine can more elegantly track the model of the vehicle. 
-* Also Currently this model does not account for aggresive driving from other cars.
+* In addition, a state machine can more elegantly track the model of the vehicle. Currently this solution uses simple flags to indicate desired lane change, which carries over across telemetry events. A more sophisticated state machine can consider states that prioritize changing lanes back to the center or to be more aggresive in lane change (shorter safety gap) if we encounter the same prohibiting vehicle more than once.
+* Also currently this model does not account for aggresive driving from other cars. We only slow for due to proximity to vehicles in front but we can add behavior more defensive driving that avoids or brakes if detection lane encroachment.
 
