@@ -22,6 +22,8 @@ constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
 
+const double LANE_WIDTH = 4.0; // lane width is 4 meters
+
 // indexed by lanes, boolean flags to indicate valid left or right lane change
 vector<int> change_left= {0, 1, 1};
 vector<int> change_right = {1, 1, 0};

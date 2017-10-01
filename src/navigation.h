@@ -21,6 +21,34 @@ public:
     Navigation():lane_(1), ref_vel_(0), change_lanes_(false){};
     ~Navigation(){};
 
+    bool IsLaneOpen(float d, double check_speed, double check_car_s, int lane, Car car, int prev_size)
+    {
+
+        bool is_open = true;
+        float safe_d_in_lane_width = 0.5;
+
+        // if the car is in given lane
+        if(  (d < LANE_WIDTH*(0.5 + lane + safe_d_in_lane_width))
+             && (d > LANE_WIDTH*(0.5 + lane - safe_d_in_lane_width)) )
+        {
+
+            // project s value outwards
+            check_car_s += ( (double)prev_size * 0.02 * check_speed);
+
+            // check s values greater than mine and s gap
+            if( ((check_car_s > car.GetS()) && ((check_car_s - car.GetS()) < 30))
+                    || ((check_car_s < car.GetS()) && ((car.GetS() - check_car_s) < 30))
+                    )
+                if((abs(check_car_s - car.GetS()) < 30))
+                {
+                    is_open = false;
+                }
+        }
+
+        return is_open;
+    }
+
+
     void UpdateNavigation(Car& car, nlohmann::json sensor_fusion, nlohmann::json previous_path_x, double end_path_s)
     {
         // previous path size default 50
@@ -58,27 +86,10 @@ public:
                     too_close = true;
                     change_lanes_ = true;
                 }
-            }
-
-            // car is in my left lane
-            if((lane_-1 >= 0) && d < (2+4*(lane_-1)+2) && d > (2+4*(lane_-1) -2))
+            }else
             {
-                // check s values greater than our car and s gap of 30m
-                if(!(((check_car_s_next > car.GetS()) && (check_car_s_next-car.GetS() > 30)) ||
-                     ((check_car_s_next < car.GetS()) && (car.GetS() - check_car_s_next > 30))))
-                {
-                    change_left_safe = false;
-                }
-            }
-            // car is in my right lane
-            else if((lane_ + 1 <= 2) && d < (2+4*(lane_+1)+2) && d > (2+4*(lane_+1) -2))
-            {
-                // check s values greater than our car and s gap of 30m
-                if(!(((check_car_s_next > car.GetS()) && (check_car_s_next-car.GetS() > 30)) ||
-                     ((check_car_s_next < car.GetS()) && (car.GetS() - check_car_s_next > 30))))
-                {
-                    change_right_safe = false;
-                }
+                change_left_safe = change_left_safe && IsLaneOpen(d, check_speed, check_car_s, lane_-1, car, prev_size);
+                change_right_safe = change_right_safe && IsLaneOpen(d, check_speed, check_car_s, lane_+1, car, prev_size);
             }
         }
 
