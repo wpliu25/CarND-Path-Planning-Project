@@ -10,6 +10,7 @@ set(CMAKE_CXX_FLAGS, "${CXX_FLAGS}")
 set(sources src/main.cpp
             src/utils.h
             src/car.h
+            src/navigation.h
             src/path.h)
 
 
